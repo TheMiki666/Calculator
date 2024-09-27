@@ -5,7 +5,8 @@ let memory;   //Number in the memory
 let decimal;  //Flag; if the number of the screen has decimal point, it changes to true
 let error;    //Flag; It's true when the number is too big (overflow) or we have made a division by 0
 let justInMemory;   //Flag; It's true when the user has just pressed an operation or equal, but not a digit yet
-let negative; //True means the number on the screen is negative
+let negative; //Flag;True means the number on the screen is negative
+let changeSignIsPressed;  //Flag; True if you press the sign change button before you have entered a digit
 let numDigits;   //Number of digits (except the decimal point or the negative simbol) that are on the screen
 const MAX_NUM_OF_DIGITS=10; //Max number of digits that the calculator can manage
 
@@ -29,13 +30,14 @@ function clear(){
     error=false;  
     negative=false;  
     justInMemory=false;
+    changeSignIsPressed=false;
     numDigits=0; 
     operation=NO_OPERATION;
 }
 
 /**
  * 
- * @param {*} digit digit in character format, from "0" to "9"
+ * @param {string} digit digit in character format, from "0" to "9"
  * @returns true if the digit could be written
  */
 function writeDigit (digit){
@@ -55,13 +57,17 @@ function writeDigit (digit){
         }else{
             screenElement.textContent=screenElement.textContent.concat(digit);
         }
+        if (changeSignIsPressed){
+            changeSignIsPressed=false;
+            changeSign();
+        }
     }
     return ok;
 
 }
 /**
  * Eventlistener that calls the function writeDigit
- * @param {*} event Event wich target is the button clicked (a digit from 0 to 9)
+ * @param {Object event} event Event wich target is the button clicked (a digit from 0 to 9)
  */
 function clickDigit(event){
     writeDigit(event.target.id);
@@ -76,14 +82,85 @@ function deleteDigit(){
     let ok=false;
     if (!error && !justInMemory && screenElement.textContent!="0"){
         ok=true;
-        numDigits--;
+        
         justInMemory=false;
-        if (numDigits==0){
+        if (screenElement.textContent.charAt(screenElement.textContent.length-1)==="."){
+            //Erase decimal point
+            screenElement.textContent=screenElement.textContent.substring (0, screenElement.textContent.length-1);
+            decimal=false;
+            if (screenElement.textContent==="0"){
+                numDigits=0;
+            }
+        }else if (numDigits==0){
             screenElement.textContent="0";
+            negative=false;
         }else{
             screenElement.textContent=screenElement.textContent.substring (0, screenElement.textContent.length-1);
+            numDigits--;
         }
 
+        //We correct some weird results on screen
+        if (screenElement.textContent==="0." || screenElement.textContent==="-0."){
+            numDigits=1;
+            decimal=true;
+        }else if (screenElement.textContent==="" || screenElement.textContent==="-" || screenElement.textContent==="-0" ){
+            screenElement.textContent="0";
+            numDigits=0;
+            negative=false;
+            changeSignIsPressed=false;
+        }
+    }
+    return ok;
+}
+
+/**
+ * Changes the sign (positive/negavtive of the figure on the screen)
+ * If it is the starting 0, or justInMemory is true, instead of changing the sign, makes the flag changeSignIsPressed true,
+ * to change the sign when you press the first digit afterwards
+ * @returns true if the figure on the screen has changed its sign
+ */
+function changeSign(){
+    let ok=false;
+    if (!error){
+        ok=true;
+        if (justInMemory || screenElement.textContent==="0"){
+            changeSignIsPressed=!changeSignIsPressed;
+        } else{
+            if (negative){
+                //Remove the sign from the screen
+                screenElement.textContent=screenElement.textContent.substring(1);
+            }else{
+                screenElement.textContent="-".concat(screenElement.textContent);
+            
+            }
+            negative=!negative;
+        }
+    }
+
+    return ok;
+}
+
+/**
+ * Tries to se a decimal point
+ * @returns true if the decimal point is set
+ */
+function setDecimalPoint(){
+    let ok=false;
+    if (!error && !decimal && numDigits<MAX_NUM_OF_DIGITS){
+        ok=true;
+        decimal=true;
+        if (!justInMemory){
+            screenElement.textContent=screenElement.textContent.concat(".");
+            if (screenElement.textContent==="0." || screenElement.textContent==="-0." ){
+                numDigits=1;
+            }
+            
+        }else{
+            //Decimal point pressed before any digit
+            justInMemory=false;
+            screenElement.textContent="0.";
+            numDigits=1;    //Zero on units counts as one digit
+        }
     }
     
     return ok;
@@ -99,6 +176,8 @@ window.onload=function(){
     clear();
     document.getElementById("clear").addEventListener("click", clear);
     document.getElementById("del").addEventListener("click", deleteDigit);
+    document.getElementById("posNeg").addEventListener("click", changeSign);
+    document.getElementById("point").addEventListener("click", setDecimalPoint);
     for (const button of document.querySelectorAll(".digit")){
         button.addEventListener("click", clickDigit);
     }
