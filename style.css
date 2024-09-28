@@ -72,6 +72,10 @@ button.zero{
     flex-shrink: 2;
 }
 
+button:active{
+    border-style: inset;
+}
+
 #equal{
     border-bottom-right-radius: 20px;
 }

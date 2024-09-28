@@ -7,8 +7,9 @@ let error;    //Flag; It's true when the number is too big (overflow) or we have
 let justInMemory;   //Flag; It's true when the user has just pressed an operation or equal, but not a digit yet
 let negative; //Flag;True means the number on the screen is negative
 let changeSignIsPressed;  //Flag; True if you press the sign change button before you have entered a digit
+let repeatOperation;    //Flag; true if the last button pressed is Equal
 let numDigits;   //Number of digits (except the decimal point or the negative simbol) that are on the screen
-const MAX_NUM_OF_DIGITS=19; //Max number of digits that the calculator can manage
+const MAX_NUM_OF_DIGITS=13; //Max number of digits that the calculator can manage
 
 const NO_OPERATION=0;
 const ADD=1;
@@ -16,6 +17,7 @@ const SUBST=2;
 const MULTIPLY=3;
 const DIVISION=4;
 let nextOperation; //The operation that is in memory, that is going to be executed next_
+let memoryOperator; //Operator in memory used if you repeat operation pressing the equal button
 
 let screenElement;  //Element Screen in the HTML code
 
@@ -31,7 +33,9 @@ function clear(){
     negative=false;  
     justInMemory=false;
     changeSignIsPressed=false;
+    repeatOperation=false;
     numDigits=0; 
+    memoryOperator=0;
     nextOperation=NO_OPERATION;
 }
 
@@ -50,6 +54,7 @@ function writeDigit (digit){
     */
     if (!error && (digit != "0" || screenElement.textContent!="0" || justInMemory) && numDigits<MAX_NUM_OF_DIGITS){
         ok=true;
+        repeatOperation=false;
         if (justInMemory){
             screenElement.textContent="";
         }
@@ -152,6 +157,7 @@ function setDecimalPoint(){
     if (!error && !decimal && numDigits<MAX_NUM_OF_DIGITS){
         ok=true;
         decimal=true;
+        repeatOperation=false;
         if (!justInMemory){
             screenElement.textContent=screenElement.textContent.concat(".");
             if (screenElement.textContent==="0." || screenElement.textContent==="-0." ){
@@ -170,7 +176,7 @@ function setDecimalPoint(){
 }
 
 /**
- * 
+ * Sets the next operation
  * @param {integer} operation Code of next operation:  ADD, SUBSTR, MULTIPLY DIVISION, NO_OPERATION
  * @returns true if the next operation could be done
  */
@@ -204,7 +210,15 @@ function doOperation(){
     let ok=false;
     let result;
     if (!error && nextOperation!=NO_OPERATION){
-        let operator=parseFloat(screenElement.textContent);
+        let operator;
+        if (repeatOperation){
+            //We are repeating the previus operation and operator
+            operator=memoryOperator;
+        }else{
+            operator=parseFloat(screenElement.textContent);
+            memoryOperator=operator;
+        }
+        
         ok=true;
         switch (nextOperation){
             case (ADD):
@@ -234,9 +248,15 @@ function doOperation(){
             ok=false;
         }else if (!error && result!=Math.floor (result)){
             //Decimal correction
-            result=parseFloat(result.toPrecision(MAX_NUM_OF_DIGITS));            
-            
+            result=parseFloat(result.toPrecision(MAX_NUM_OF_DIGITS));  
             //For this exercise, we consider scientific notation aceptable
+            //But we have to filter the response in order no to overflow the screen  
+            result=filterResult(result);        
+            if (Math.abs(result)<Math.pow(10,-MAX_NUM_OF_DIGITS-1)){
+                //Very small number
+                result=0;
+            }
+            
         }
 
         if (!error){
@@ -250,6 +270,27 @@ function doOperation(){
     }
     
     return ok;
+}
+
+function filterResult(result){
+    stringResult=result.toString;
+    let maxDigits=MAX_NUM_OF_DIGITS+1+(result<0?1:0);   //1 plus for the decimal point, 1 plus if has the negative sign
+    let howManyCut=stringResult-maxDigits;
+    if (howManyCut>0){
+        if (stringResult.includes("e")){
+            //Scientific notation
+            let ePos=StringResult.indexOf("e");
+            stringResult=stringResult.substring(0, ePos-howManyCut) + stringResult.substring(ePos);
+        }else{
+            //Normal notation
+            stringResult=stringResult.substring(0,maxDigits);
+        }
+        return parseFloat(stringResult);
+    }else{
+        //We don't need to filter the result
+        return result;
+    }
+
 }
 
 /**
@@ -281,11 +322,21 @@ function clickOperationButton (event){
     if (button==NO_OPERATION){  //button equal
         blockPrompt();
         doOperation();
+        repeatOperation=true;
     } else {
-        selectNextOperation(button);
-        if (!justInMemory){
-            doOperation();
+        if (nextOperation==NO_OPERATION){
+            selectNextOperation(button);
+            if (!justInMemory){
+                doOperation();
+            }
+        }else{
+            //There was another operation ready
+            if (!justInMemory){
+                doOperation();
+            }
+            selectNextOperation(button);
         }
+
     }
 }
 
