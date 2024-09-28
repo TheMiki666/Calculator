@@ -11,7 +11,7 @@ let repeatOperation;    //Flag; true if the last button pressed is Equal
 let numDigits;   //Number of digits (except the decimal point or the negative simbol) that are on the screen
 const MAX_NUM_OF_DIGITS=13; //Max number of digits that the calculator can manage
 
-const NO_OPERATION=0;
+const NO_OPERATION=0;   //If it's refered to a button, means EQUAL button
 const ADD=1;
 const SUBST=2;
 const MULTIPLY=3;
@@ -272,6 +272,11 @@ function doOperation(){
     return ok;
 }
 
+/**
+ * Filters the result (a decimal number)
+ * @param {float} result result of the calculator we want to filter. It must to be a decimal number, in normal or scientific notation
+ * @returns the result filtered
+ */
 function filterResult(result){
     stringResult=result.toString;
     let maxDigits=MAX_NUM_OF_DIGITS+1+(result<0?1:0);   //1 plus for the decimal point, 1 plus if has the negative sign
@@ -317,7 +322,15 @@ function clickOperationButton (event){
         break;
         
     }
+    operationButton(button);
+}
 
+/**
+ * Does the operation depending on the button pressed
+ * You can reach this function throung keyboard support or clickOperationButton() function
+ * @param {integer} button One of the enumeration of possible values of the operation: ADD, SUBS, MULTIPLY, DIVISION or NO_OPERATION
+ */
+function operationButton (button){
     
     if (button==NO_OPERATION){  //button equal
         blockPrompt();
@@ -358,6 +371,67 @@ window.onload=function(){
     for (const button of document.querySelectorAll(".operation")){
         button.addEventListener("click", clickOperationButton);
     }
+
+    //Keyboard support
+    document.addEventListener('keydown', function(event){
+        console.log (event.key);
+
+        switch (event.key){
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                writeDigit(event.key);
+            break;
+            case '.':
+                setDecimalPoint();
+            break;
+            case 'Backspace':
+            case 'd':
+            case 'D':
+                deleteDigit();
+            break;
+            case 'Delete':
+            case 'c':
+            case 'C':
+                clear();
+            break;
+            case 's':
+            case 'S':
+                changeSign();
+            break;
+            case '+':
+                operationButton(ADD);
+            break;
+            case '-':
+                operationButton(SUBST);
+            break;
+            case '*':
+                operationButton(MULTIPLY);
+            break;
+            case '/':
+                operationButton(DIVISION);
+            break;
+            case 'Enter':
+            case '=':
+                operationButton(NO_OPERATION);
+            break;
+        }
+
+    });
+    
     
 };
+
+//FINISHED!
+
+
+
+
 
