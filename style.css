@@ -1,10 +1,12 @@
-/*JUST FUNCTIONAL DESIGN*/
+/*IMPROVED DESIGN*/
 
 body{
     width: 400px;
-    margin: 0 auto;
+    margin: 50px auto;
     display: flex;
     flex-direction: column;
+    font-family: Helvetica, Arial,  sans-serif;
+    flex-shrink: 1;
 
 }
 
@@ -13,17 +15,32 @@ body{
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
+    flex-shrink: 1;
+
 }
+
+#calculator{
+    box-shadow: 30px 30px 20px #AAA;
+    border-radius: 20px;
+    flex-shrink: 1;
+}
+
 
 #screen{
     background-color: rgb(181, 214, 235);
-    border-color: black;
-    border-style: solid;
-    border-width: 2px;
-    padding: 20px;
+    border-color: rgb(60 94 115);
+    border-style: inset;
+    border-width: 10px;
+    padding: 20px 20px 0;
     height: 60px;
     font-size: xx-large;
     text-align: right;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    font-family: "Digital-7", Verdana, Tahoma, Helvetica, Arial,  sans-serif;
+    vertical-align: 70%;
+    flex-shrink: 1;
+    
 }
 
 .buttonLine{
@@ -32,15 +49,30 @@ body{
     justify-content: flex-start;
     align-items: space-between;
     flex-basis: 100px;
+    flex-shrink: 1;
 }
 
 button{
     flex-basis: 100px;
     flex-grow: 1;
     font-size: xx-large;
+    border-radius: 0;
+    border-color: #52515f;
+    border-style: outset;
+    border-width: 10px;
+    background-color: #e1e1e5;
+    flex-shrink: 1;
+    
 }
 
 button.zero{
     flex-basis: 200px;
     flex-grow: 2;
+    border-bottom-left-radius: 20px;
+    flex-shrink: 2;
 }
+
+#equal{
+    border-bottom-right-radius: 20px;
+}
+

@@ -8,7 +8,7 @@ let justInMemory;   //Flag; It's true when the user has just pressed an operatio
 let negative; //Flag;True means the number on the screen is negative
 let changeSignIsPressed;  //Flag; True if you press the sign change button before you have entered a digit
 let numDigits;   //Number of digits (except the decimal point or the negative simbol) that are on the screen
-const MAX_NUM_OF_DIGITS=10; //Max number of digits that the calculator can manage
+const MAX_NUM_OF_DIGITS=19; //Max number of digits that the calculator can manage
 
 const NO_OPERATION=0;
 const ADD=1;
