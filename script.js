@@ -227,46 +227,26 @@ function doOperation(){
                 }
             break;
         }
+        //Overflow filter
+        if (Math.abs(result)>=Math.pow(10,MAX_NUM_OF_DIGITS)){
+            screenElement.textContent="OVERFLOW";
+            error=true;
+            ok=false;
+        }else if (!error && result!=Math.floor (result)){
+            //Decimal correction
+            result=parseFloat(result.toPrecision(MAX_NUM_OF_DIGITS));            
+            
+            //For this exercise, we consider scientific notation aceptable
+        }
+
         if (!error){
-            screenElement.textContent=result;
+            screenElement.textContent=result.toString();
             memory=result;
             justInMemory=true; 
 
         }
 
 
-        /*TODO: METE EL OVERFLOW FILTER EN UNA FUNCIÓN*/
-
-        /*
-       //Overflow filter
-        if (result>(MAX_NUM_OF_DIGITS*10-1) || result<(MAX_NUM_OF_DIGITS*-10+1)){
-            screenElement.textContent="OVERFLOW";
-            error=true;
-            ok=false;
-        } else {
-            //We have to reduce the number of items to screen size
-            let stringResult =String.toString(result);
-            //We count the number of digits and the decimal point and the negative sign
-            let cut=MAX_NUM_OF_DIGITS;
-            if (result<0){
-                cut++;  //Extra place for the minus of the negatives numbers
-            }
-            if (Math.floor(result)!=result){
-                cut++;  //Extra place for the decimal point
-                //We have to round the last digit
-                let integerDigits=Math.floor(Math.log(result))+1;
-                if (integerDigits<1) integerDigits=1;
-                let decimalDigits= MAX_NUM_OF_DIGITS-integerDigits;
-                if (decimalDigits<MAX_NUM_OF_DIGITS) decimalDigits= MAX_NUM_OF_DIGITS;
-                result=Math.round(result*Math.pow(10,decimalDigits))/Math.pow(10, decimalDigits);
-
-            }
-            //Finally, we cut the output of the screen
-            result = parseFloat (stringResult.substring(0,cut-1));
-            memory=result;
-            screenElement.textContent=result;
-        }
-            */
     }
     
     return ok;
