@@ -374,7 +374,7 @@ window.onload=function(){
 
     //Keyboard support
     document.addEventListener('keydown', function(event){
-        console.log (event.key);
+        
 
         switch (event.key){
             case '0':
