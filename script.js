@@ -15,7 +15,7 @@ const ADD=1;
 const SUBST=2;
 const MULTIPLY=3;
 const DIVISION=4;
-let operation; //The operation that is in memory, that is going to be executed next_
+let nextOperation; //The operation that is in memory, that is going to be executed next_
 
 let screenElement;  //Element Screen in the HTML code
 
@@ -32,7 +32,7 @@ function clear(){
     justInMemory=false;
     changeSignIsPressed=false;
     numDigits=0; 
-    operation=NO_OPERATION;
+    nextOperation=NO_OPERATION;
 }
 
 /**
@@ -50,6 +50,9 @@ function writeDigit (digit){
     */
     if (!error && (digit != "0" || screenElement.textContent!="0" || justInMemory) && numDigits<MAX_NUM_OF_DIGITS){
         ok=true;
+        if (justInMemory){
+            screenElement.textContent="";
+        }
         numDigits++;
         justInMemory=false;
         if (screenElement.textContent==="0"){
@@ -166,6 +169,146 @@ function setDecimalPoint(){
     return ok;
 }
 
+/**
+ * 
+ * @param {integer} operation Code of next operation:  ADD, SUBSTR, MULTIPLY DIVISION, NO_OPERATION
+ * @returns true if the next operation could be done
+ */
+function selectNextOperation (operation){
+    let ok=false;
+    if (!error){
+        memory=parseFloat(screenElement.textContent);
+        nextOperation=operation;
+        blockPrompt();
+        ok=true;
+    }
+    return ok;
+}
+
+/**
+ * Finishes the prompting of a number
+ */
+function blockPrompt(){
+    justInMemory=true;
+    changeSignIsPressed=false;
+    numDigits=0;
+    negative=false;
+    decimal=false;
+}
+
+/**
+ * Executes the operation that is on memory
+ * @returns true if the operation could be done
+ */
+function doOperation(){
+    let ok=false;
+    let result;
+    if (!error && nextOperation!=NO_OPERATION){
+        let operator=parseFloat(screenElement.textContent);
+        ok=true;
+        switch (nextOperation){
+            case (ADD):
+                result=memory+operator;
+            break;
+            case (SUBST):
+                result=memory-operator;
+            break;
+            case (MULTIPLY):
+                result=memory*operator;
+            break;
+            case (DIVISION):
+                if (operator==0){
+                    //DIVISION BY ZERO
+                    screenElement.textContent="ERROR";
+                    error=true;
+                    ok=false;
+                }else{
+                    result=memory/operator;
+                }
+            break;
+        }
+        if (!error){
+            screenElement.textContent=result;
+            memory=result;
+            justInMemory=true; 
+
+        }
+
+
+        /*TODO: METE EL OVERFLOW FILTER EN UNA FUNCIÓN*/
+
+        /*
+       //Overflow filter
+        if (result>(MAX_NUM_OF_DIGITS*10-1) || result<(MAX_NUM_OF_DIGITS*-10+1)){
+            screenElement.textContent="OVERFLOW";
+            error=true;
+            ok=false;
+        } else {
+            //We have to reduce the number of items to screen size
+            let stringResult =String.toString(result);
+            //We count the number of digits and the decimal point and the negative sign
+            let cut=MAX_NUM_OF_DIGITS;
+            if (result<0){
+                cut++;  //Extra place for the minus of the negatives numbers
+            }
+            if (Math.floor(result)!=result){
+                cut++;  //Extra place for the decimal point
+                //We have to round the last digit
+                let integerDigits=Math.floor(Math.log(result))+1;
+                if (integerDigits<1) integerDigits=1;
+                let decimalDigits= MAX_NUM_OF_DIGITS-integerDigits;
+                if (decimalDigits<MAX_NUM_OF_DIGITS) decimalDigits= MAX_NUM_OF_DIGITS;
+                result=Math.round(result*Math.pow(10,decimalDigits))/Math.pow(10, decimalDigits);
+
+            }
+            //Finally, we cut the output of the screen
+            result = parseFloat (stringResult.substring(0,cut-1));
+            memory=result;
+            screenElement.textContent=result;
+        }
+            */
+    }
+    
+    return ok;
+}
+
+/**
+ * Sets operativity to the operation buttons
+ * @param {Object event} event button of operation
+ */
+function clickOperationButton (event){
+    let button;
+    switch (event.target.id){
+        case "addition":
+            button=ADD;
+        break;
+        case "substraction":
+            button=SUBST;
+        break;
+        case "multiplication":
+            button=MULTIPLY;
+        break;
+        case "division":
+            button=DIVISION;
+        break;
+        case "equal":
+            button=NO_OPERATION;
+        break;
+        
+    }
+
+    
+    if (button==NO_OPERATION){  //button equal
+        blockPrompt();
+        doOperation();
+    } else {
+        selectNextOperation(button);
+        if (!justInMemory){
+            doOperation();
+        }
+    }
+}
+
 
 /**
  * Asigns the funcionaly of the buttons and the HTML element screen
@@ -180,6 +323,9 @@ window.onload=function(){
     document.getElementById("point").addEventListener("click", setDecimalPoint);
     for (const button of document.querySelectorAll(".digit")){
         button.addEventListener("click", clickDigit);
+    }
+    for (const button of document.querySelectorAll(".operation")){
+        button.addEventListener("click", clickOperationButton);
     }
     
 };
